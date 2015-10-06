@@ -63,7 +63,7 @@ public class Problem18
 	
 	
 	
-	/*	FUCK IT I'LL DO IT ON PAPER
+/*
 
 				HOW IT WORKS
 				
