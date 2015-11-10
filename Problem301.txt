@@ -1,0 +1,144 @@
+Problem 301.
+I actually used no code for this problem, but I think my solution warrants a spot here.
+(This took me roughly 90 minutes to figure out)
+Problem 301 says this:
+
+*************************************************************************
+
+Nim is a game played with heaps of stones, where two players take it in turn to remove 
+any number of stones from any heap until no stones remain.
+We'll consider the three-heap normal-play version of Nim, which works as follows:
+At the start of the game there are three heaps of stones. On his turn the player removes 
+any positive number of stones from any single heap. The first player unable to move 
+(because no stones remain) loses.
+
+If (n1,n2,n3) indicates a Nim position consisting of heaps of size n1, n2 and n3 then there 
+is a simple function X(n1,n2,n3) — that you may look up or attempt to deduce for yourself 
+— that returns:
+•	zero if, with perfect strategy, the player about to move will eventually lose; or
+•	non-zero if, with perfect strategy, the player about to move will eventually win.
+
+For example X(1,2,3) = 0 because, no matter what the current player does, his 
+opponent can respond with a move that leaves two heaps of equal size, 
+at which point every move by the current player can be mirrored by his opponent until 
+no stones remain; so the current player loses. 
+
+To illustrate:?- current player moves to 
+(1,2,1)?- opponent moves to (1,0,1)?- current player moves to (0,0,1)?- opponent 
+moves to (0,0,0), and so wins.
+
+For how many positive integers n>=2^30 does X(n,2n,3n) = 0 ?
+*************************************************************************
+
+So how do we go about solving this? Well, it took a while for me to figure it out.
+Let’s start with the function the problem refers to. Say we do have three piles, of size 1, 
+2, and 3.
+The first thing you want to do is convert them to binary.
+
+1 => 0 0 1
+2 => 0 1 0
+3 => 0 1 1
+
+For each bit, you XOR all the piles, and list what that gives you.
+So in this case, the most significant bits are 0, 0, and 0.
+XOR returns 1 when an odd number of bits are 1.
+So in this case it returns 0.
+Doing this for all the bits, you get 0 0 0.
+If each place, when all the bits are XORed, equals 0, then player 1 cannot win the game 
+through perfect play.
+The reason this works is because when the piles are in this position where all the XORs 
+equal 0, any legal move will alter at least 1 bit, and by doing that you CANNOT keep all 
+the XORs 0.
+In contrast, it’s always possible to remove stones from the heap to keep this condition, 
+since, starting with the most significant bit that XORs to a 1, by removing a specific 
+number,
+you have full control over how every lesser significant bit XORs.
+The losing condition is when you have to make the final pile 0. All the piles will then be 
+0, so when you XOR them you’ll get all 0s. You don’t want that.
+That’s why, with perfect play, the player starting out will always lose when all the XORs 
+equal 0.
+
+The question asks when X(n,2n,3n) = 0 for n in the Natural Numbers >= 2^30.
+That means the largest possible binary number n can be is 
+1000000000000000000000000000000 (thirty 0s).
+But to develop the formula, that’s way too clunky to work with. I’m going to work with n? 
+2^4 to find a formula.
+
+The best way to go about this, without any prior direction, is to start chugging out 
+examples. Does some random n hold the XOR rule? If so why? If not, why not?
+
+So let’s start with 1. That means we have 1, 2, and 3.
+
+1 => 0 0 1
+2 => 0 1 0
+3 => 0 1 1
+
+We already showed this works.
+From here, we can add any number of 0s to the right of it and the XOR test will still hold.
+This means we can show that 2 works, by simply adding a 0 to the end of everything.
+This is because we’re multiplying by the radix, which is 2 for binary.
+
+2 => 0 0 1 0
+4 => 0 1 0 0
+6 => 0 1 1 0
+
+This passes the XOR test.
+
+We can use this multiply by 2 rule to our advantage.
+For any binary number n, represented with binary numbers A B C D … ,
+2n is simply A B C D … 0.
+Similarly, 3n is just 2n + n.
+With basic binary addition, we can calculate 3n easily given n and therefore 2n.
+
+This is the point where currently being enrolled in EECS 140 (at the time of writing this) 
+helps a lot.
+Especially since we’ve been talking about full adders recently.
+If you add two binary numbers, and they’re both 1, you’re going to have a carry.
+To demonstrate this (and figure this out for myself), I will use eleven as an example:
+
+11 = 0 0 1 1 0 1
+22 = 0 1 1 0 1 0
+33 = 1 0 0 0 1 1
+—————————
+        1 1 0 1 0 0
+
+As you can see, it doesn’t work with our XOR test. But why is it different?
+It turns out it has to do with carrying.
+If you have to carry at one point, you’re going to keep carrying until neither the first 
+number nor the second is a 1.
+That is, they’re both 0. You’re therefore guaranteed to have at least one place of 
+significance with exactly one 1.
+Which means it will fail the XOR test.
+
+What starts the carrying then? Both the first number and the second number have to be 
+1.
+But remember how we got the second number. We multiplied by 2, which essentially 
+shifted each bit to the left by 1, and added a 0 to the end.
+So, to avoid carrying, we have to avoid having both of the numbers being 1. Since the 
+second number is a one-digit shift of the first, we can confidently say:
+
+The current player will lose, assuming perfect play, when each respective bit in the 
+binary representation of the number of stones, when XORed together, equals 0.
+The three numbers will XOR to 0 in all bits when the binary representation of n has no 
+adjacent 1s.
+
+
+There’s one last thing to do: Find out how many binary numbers less than or equal to 
+1000000000000000000000000000000 (thirty 0s still) have no adjacent 1s.
+I believe there may be an elegant solution to this, based on my (limited) experience 
+working with binary numbers.
+(I can’t explain why, but binomial series, which we just finished studying in Calc 2, 
+seemed familiar.)
+So I did the one thing I could think of: Chart out smaller, easier to handle cases and see 
+if I can identify a pattern.
+
+I did, and my work is shown in this picture:
+
+i.imgur.com/fn6OizB.jpg
+
+To my surprise, the number of games with this quality seemed to follow the Fibonacci 
+Sequence.
+That means the answer, following that pattern, would be the 32nd number in the 
+sequence.
+It was, therefore validating this proof.
+Q.E.D.
