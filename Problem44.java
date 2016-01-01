@@ -12,7 +12,7 @@ public class Problem44
         for(int i=1; i<10000; i++) //hopefully the answer is within the first 10000
         {
             int next = ((3*i) - 1)*i/2;
-            pentagonals.add(next); //generates all pentagonals below 10^20, and the first one above it
+            pentagonals.add(next); //generates the first 10000 pentagonal numbers
         }
         //System.out.println(pentagonals);
 
